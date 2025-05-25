@@ -15,6 +15,9 @@ export default function App() {
       </View>
 
       <View style={styles.content}>
+        <View style={styles.userIdContainer}>
+          <Text style={styles.userIdText}>#0000</Text>
+        </View>
         <Text style={styles.yourLoveName}>Your Love Name</Text>
         <Text style={styles.incomingLove}>162</Text>
         <Text style={styles.textSmall}>sent loves today</Text>
@@ -85,5 +88,23 @@ const styles = StyleSheet.create({
     fontWeight: 'regular',
     fontFamily: 'Roboto',
     fontSize: 20,
+  },
+  userIdContainer:{
+    backgroundColor: "#fb2235",
+    position: 'absolute',
+    right: 0,
+    top: -30,
+    width: 80,
+    height: 40,
+    borderBottomLeftRadius: 20,
+    borderTopLeftRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  userIdText:{
+    color: "white",
+    fontSize: 18,
+    fontWeight: 'light',
+    fontFamily: 'serif',
   },
 });
