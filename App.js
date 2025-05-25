@@ -1,5 +1,5 @@
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View, ImageBackground, Image } from 'react-native';
+import { StyleSheet, Text, View, ImageBackground, Image, Button,TouchableOpacity } from 'react-native';
 
 export default function App() {
   return (
@@ -15,23 +15,29 @@ export default function App() {
       </View>
 
       <View style={styles.content}>
-        <Text style={styles.text}>Your Love Name</Text>
+        <Text style={styles.yourLoveName}>Your Love Name</Text>
         <Text style={styles.incomingLove}>162</Text>
+        <Text style={styles.textSmall}>sent loves today</Text>
       </View>
-      </View>
-    
+      <TouchableOpacity style={styles.sendLoveButton}>
+        <Text style={styles.sendLoveButtonText}>SEND</Text>
+      </TouchableOpacity>
+     
+
+    </View>
+
   );
 }
 
 const styles = StyleSheet.create({
-  container:{
+  container: {
     flex: 1,
   },
   background: {
-   position: 'absolute', 
-   width: '100%',
-   alignSelf: 'center',
-   marginTop: 150,
+    position: 'absolute',
+    width: '100%',
+    alignSelf: 'center',
+    marginTop: 150,
 
   },
   content: {
@@ -39,21 +45,45 @@ const styles = StyleSheet.create({
     marginTop: 30,
     alignItems: 'center',
   },
-  text: {
+  yourLoveName: {
     color: '#595959',
     fontSize: 22,
     fontWeight: 'light',
     fontFamily: 'notoserif',
   },
-  incomingLove:{
+  incomingLove: {
     color: "#595959",
     fontSize: 80,
+    lineHeight: 80,
     fontWeight: 'bold',
     fontFamily: 'Roboto',
     marginTop: 20,
   },
+  textSmall: {
+    color: '#595959',
+    fontSize: 14,
+    fontWeight: 'light',
+    fontFamily: 'notoserif',
+  },
   logoText: {
+    alignSelf: 'center',
+    marginTop: 10,
+  },
+  sendLoveButton:{
+    borderRadius: 30,
+    borderWidth: 3,
+    borderColor: "#fb2235",
+    width: '40%',
+    height: 50,
+    alignSelf: 'center',
     alignItems: 'center',
-    width: '100%',
+    justifyContent: 'center',
+    marginBottom: 30,
+  },
+  sendLoveButtonText:{
+    color: "#fb2235",
+    fontWeight: 'regular',
+    fontFamily: 'Roboto',
+    fontSize: 20,
   },
 });
