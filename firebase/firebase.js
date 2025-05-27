@@ -1,5 +1,9 @@
-import { initializeApp } from "firebase/app";
-import { getDatabase } from "firebase/database";
+// firebase.js
+import { initializeApp } from 'firebase/app';
+import { getAuth, signInAnonymously, onAuthStateChanged } from 'firebase/auth';
+import { getDatabase } from 'firebase/database';
+
+
 import {
   FIREBASE_API_KEY,
   FIREBASE_AUTH_DOMAIN,
@@ -18,5 +22,9 @@ const firebaseConfig = {
   appId: FIREBASE_APP_ID
 };
 
+
 const app = initializeApp(firebaseConfig);
-export const db = getDatabase(app);
+const auth = getAuth(app);
+const database = getDatabase(app);
+
+export { auth, database, signInAnonymously, onAuthStateChanged };
