@@ -1,7 +1,10 @@
 // firebase.js
-import { initializeApp } from 'firebase/app';
-import { getAuth, signInAnonymously, onAuthStateChanged } from 'firebase/auth';
+import { getAuth, signInAnonymously, onAuthStateChanged  } from 'firebase/auth';
 import { getDatabase } from 'firebase/database';
+
+import { initializeApp, getApps, getApp } from 'firebase/app';
+import { initializeAuth, getReactNativePersistence } from 'firebase/auth';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
 import {
@@ -22,9 +25,18 @@ const firebaseConfig = {
   appId: FIREBASE_APP_ID
 };
 
+let app;
+if (getApps().length === 0) {
+  app = initializeApp(firebaseConfig);
+} else {
+  app = getApp();
+}
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
+const auth = initializeAuth(app, {
+  persistence: getReactNativePersistence(AsyncStorage),
+});
+
+
 const database = getDatabase(app);
 
 export { auth, database, signInAnonymously, onAuthStateChanged };

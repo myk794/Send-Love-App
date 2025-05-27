@@ -2,25 +2,30 @@ import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View, ImageBackground, Image, Button,TouchableOpacity } from 'react-native';
 import { auth, signInAnonymously, onAuthStateChanged } from './firebase/firebase';
 import { useEffect } from 'react';
+
 export default function App() {
 
-   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (!user) {
-        signInAnonymously(auth)
-          .then((userCredential) => {
-            console.log('Anonim giriş başarılı:', userCredential.user.uid);
-          })
-          .catch((error) => {
-            console.error('Anonim giriş hatası:', error);
-          });
-      } else {
-        console.log('Zaten giriş yapmış:', user.uid);
-      }
-    });
+   
 
-    return unsubscribe;
-  }, []);
+useEffect(() => {
+  const unsubscribe = onAuthStateChanged(auth, (user) => {
+    if (!user) {
+      // If no user is logged in, sign in anonymously
+      signInAnonymously(auth)
+        .then((userCredential) => {
+          console.log('Anonim giriş başarılı (Anonymous sign-in successful):', userCredential.user.uid);
+        })
+        .catch((error) => {
+          console.error('Anonim giriş hatası (Anonymous sign-in error):', error);
+        });
+    } else {
+      // User is already logged in (due to persistence or a fresh sign-in)
+      console.log('Zaten giriş yapmış (Already signed in):', user.uid);
+    }
+  });
+
+  return unsubscribe;
+}, []);
   return (
     <View style={styles.container}>
 
