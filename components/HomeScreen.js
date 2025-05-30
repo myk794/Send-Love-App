@@ -1,9 +1,10 @@
 
 import React from 'react'
 import { StyleSheet, Text, View, ImageBackground, Image, Button, TouchableOpacity, Modal } from 'react-native';
-import { auth, signInAnonymously, onAuthStateChanged } from '../firebase/firebase';
+import { auth, signInAnonymously, onAuthStateChanged, database } from '../firebase/firebase';
 import { useEffect, useState } from 'react';
 import Loading from './Loading';
+import { saveUsertoDatabase } from '../backend/database';
 
 export default function HomeScreen() {
     const [loading, setLoading] = useState(false);
@@ -15,6 +16,9 @@ export default function HomeScreen() {
                 signInAnonymously(auth)
                     .then((userCredential) => {
                         console.log('Anonim giriş başarılı (Anonymous sign-in successful):', userCredential.user.uid);
+                        userCredential.user.getIdToken().then((idToken) => {
+                            saveUsertoDatabase(idToken, 'YigitKaya',userCredential.user.uid);
+                        });
                     })
                     .catch((error) => {
                         console.error('Anonim giriş hatası (Anonymous sign-in error):', error);
@@ -22,14 +26,21 @@ export default function HomeScreen() {
             } else {
                 // User is already logged in (due to persistence or a fresh sign-in)
                 console.log('Zaten giriş yapmış (Already signed in):', user.uid);
+
+
+
+
+
             }
-            
+
         });
 
         return unsubscribe;
     }, []);
+
+
     return (
-        
+
         <View style={styles.container}>
 
 
@@ -53,7 +64,7 @@ export default function HomeScreen() {
             <TouchableOpacity style={styles.sendLoveButton}>
                 <Text style={styles.sendLoveButtonText}>SEND</Text>
             </TouchableOpacity>
-            
+
 
         </View>
 
