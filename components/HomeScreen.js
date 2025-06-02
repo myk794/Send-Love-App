@@ -1,31 +1,42 @@
 
 import React from 'react'
-import { StyleSheet, Text, View, ImageBackground, Image, Button, TouchableOpacity, Modal } from 'react-native';
+import { StyleSheet, Text, View, ImageBackground, Image, Button,ActivityIndicator, TouchableOpacity, Modal, Pressable, TextInput } from 'react-native';
 import { auth, signInAnonymously, onAuthStateChanged, database } from '../firebase/firebase';
 import { useEffect, useState } from 'react';
 import Loading from './Loading';
-import { saveUsertoDatabase } from '../backend/database';
+import { getUser, saveUsertoDatabase } from '../backend/database';
+import ConnectToUser from './ConnectToUser';
 
 export default function HomeScreen() {
     const [loading, setLoading] = useState(false);
+    const [id4, setId4] = useState(null);
+    const [connected, setConnected] = useState(false);
+    const [nameInputModal, setNameInputModal] = useState(false);
+    const [userName, setUserName] = useState('');
+    const [nameInput, setNameInput] = useState('');
+    const [recievedLove, setRecievedLove] = useState('0');
+    const [connectUserModal, setConnectUserModal] = useState(false);
     useEffect(() => {
+        setLoading(false);
         const unsubscribe = onAuthStateChanged(auth, (user) => {
 
-            if (!user) {
-                // If no user is logged in, sign in anonymously
-                signInAnonymously(auth)
-                    .then((userCredential) => {
-                        console.log('Anonim giriş başarılı (Anonymous sign-in successful):', userCredential.user.uid);
-                        userCredential.user.getIdToken().then((idToken) => {
-                            saveUsertoDatabase(idToken, 'YigitKaya',userCredential.user.uid);
-                        });
-                    })
-                    .catch((error) => {
-                        console.error('Anonim giriş hatası (Anonymous sign-in error):', error);
-                    });
+            if (!user) { 
+                setNameInputModal(true);
             } else {
                 // User is already logged in (due to persistence or a fresh sign-in)
                 console.log('Zaten giriş yapmış (Already signed in):', user.uid);
+                user.getIdToken().then((idToken) => {
+
+                    getUser(idToken, user.uid).then(id => {
+                        setId4(id);
+                        console.log(id);
+                    }).catch(error => {
+                        console.error('Hata:', error);
+                    });
+
+
+                });
+
 
 
 
@@ -38,12 +49,80 @@ export default function HomeScreen() {
         return unsubscribe;
     }, []);
 
+    const pressButton = () => {
+        
+        if (connected) sendLove();
+        else connectLove();
+    }
+    const sendLove = () => {
+        
+    }
+    const connectLove = () => {
+        setConnectUserModal(true);
+    }
+    const onConnectLove = () => {
+        setConnectUserModal(false);
+    }
+    const setNameButton = async() => {
+        if (nameInput === '') return;
 
+        setNameInputModal(false);
+        setLoading(true);
+        await onAuthStateChanged(auth, (user) => {
+
+            if (!user) {
+                // If no user is logged in, sign in anonymously
+                signInAnonymously(auth)
+                    .then((userCredential) => {
+                        console.log('Anonim giriş başarılı (Anonymous sign-in successful):', userCredential.user.uid);
+                        userCredential.user.getIdToken().then((idToken) => {
+                            saveUsertoDatabase(idToken, nameInput, userCredential.user.uid).then(() => {
+                                getUser(idToken, userCredential.user.uid).then(id => {
+                                    setId4(id);
+                                    console.log(id);
+                                }).catch(error => {
+                                    console.error('Hata:', error);
+                                });
+                            });
+
+
+                        });
+                    })
+                    .catch((error) => {
+                        console.error('Anonim giriş hatası (Anonymous sign-in error):', error);
+                    });
+            }
+
+        });
+        setLoading(false);
+
+    }
     return (
 
         <View style={styles.container}>
-
-
+            <ConnectToUser visible={connectUserModal} onSubmit={onConnectLove}/>
+            <Loading visible={loading}/>
+            <Modal
+                animationType="fade"
+                transparent={true}
+                visible={nameInputModal}
+                onRequestClose={() => {
+                    
+                }}>
+                <View style={styles.centeredView}>
+                    <View style={styles.modalView}>
+                        <Text style={styles.modalText}>Enter Your Name:</Text>
+                        <TextInput style={styles.textInput}
+                            value={nameInput}
+                            onChangeText={setNameInput} />
+                        <Pressable
+                            style={[styles.button, styles.buttonClose]}
+                            onPress={setNameButton}>
+                            <Text style={styles.textStyle}>Submit</Text>
+                        </Pressable>
+                    </View>
+                </View> 
+            </Modal>
             <Image
                 source={require('../assets/background.png')}
                 style={styles.background}
@@ -55,14 +134,14 @@ export default function HomeScreen() {
 
             <View style={styles.content}>
                 <View style={styles.userIdContainer}>
-                    <Text style={styles.userIdText}>#0000</Text>
+                    <Text style={styles.userIdText}>{id4 ? `#${id4}` : '#0000'}</Text>
                 </View>
                 <Text style={styles.yourLoveName}>Your Love Name</Text>
-                <Text style={styles.incomingLove}>162</Text>
+                <Text style={styles.incomingLove}>{recievedLove}</Text>
                 <Text style={styles.textSmall}>sent loves today</Text>
             </View>
-            <TouchableOpacity style={styles.sendLoveButton}>
-                <Text style={styles.sendLoveButtonText}>SEND</Text>
+            <TouchableOpacity style={styles.sendLoveButton} onPress={pressButton}>
+                <Text style={styles.sendLoveButtonText}>{connected ? 'SEND' : 'CONNECT'}</Text>
             </TouchableOpacity>
 
 
@@ -147,4 +226,54 @@ const styles = StyleSheet.create({
         fontWeight: 'light',
         fontFamily: 'serif',
     },
+    centeredView: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0,0,0,0.8)',
+    },
+    modalView: {
+        width: '75%',
+        backgroundColor: 'white',
+        borderRadius: 20,
+        padding: 35,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 4,
+        elevation: 5,
+    },
+    button: {
+        borderRadius: 20,
+        padding: 10,
+        elevation: 2,
+        width: '60%',
+    },
+    buttonOpen: {
+        backgroundColor: '#F194FF',
+    },
+    buttonClose: {
+        backgroundColor: '#fb2235',
+    },
+    textStyle: {
+        color: 'white',
+        fontWeight: 'bold',
+        textAlign: 'center',
+    },
+    modalText: {
+        marginBottom: 15,
+        textAlign: 'center',
+    },
+    textInput: {
+        height: 40,
+        marginBottom: 10,
+        borderWidth: 1,
+        padding: 10,
+        width: '100%',
+        borderRadius: 20,
+    }
 });

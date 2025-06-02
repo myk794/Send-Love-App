@@ -1,17 +1,17 @@
 import React from 'react';
-import { View, ActivityIndicator, StyleSheet,Text,Modal } from 'react-native';
+import { View, ActivityIndicator, StyleSheet, Text, Modal } from 'react-native';
 
-export default function Loading({visible}) {
+export default function Loading({ visible }) {
   return (
     <Modal
-      transparent
+      transparent={true}
       animationType="fade"
       visible={visible}
-      onRequestClose={() => {}}
+      onRequestClose={() => { }}
     >
-      <View style={styles.overlay}>
-        <View style={styles.loaderContainer}>
-            <Text style={styles.text}>Loading..</Text>
+      <View style={styles.centeredView}>
+        <View style={styles.modalView}>
+          <Text style={styles.text}>Waiting connection..</Text>
           <ActivityIndicator size="large" color="#3f51b5" />
         </View>
       </View>
@@ -20,13 +20,28 @@ export default function Loading({visible}) {
 }
 
 const styles = StyleSheet.create({
-  container: {
+  centeredView: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: 'rgba(0,0,0,0.8)',
   },
-  text:{
+  modalView: {
+    width: '75%',
+    backgroundColor: 'white',
+    borderRadius: 20,
+    padding: 35,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  text: {
     color: 'gray',
   }
 });

@@ -13,36 +13,55 @@ function generateCode(length = 4) {
     }
     return code;
 }
-async function saveUsertoDatabase(userID,name,uid) {
+async function getUser(userTokenID, uid) {
+    const url = dbUrl + userTokenID;
+    try {
+        const response = await axios.get(url);
+        console.log('Veri:', response.data);
+        let foundId = null;
+        Object.entries(response.data).forEach(([key, user]) => {
+            if (user.uid === uid) {
+                foundId = user.id;
+            }
+        });
+
+        console.log('Bulunan ID:', foundId);
+        return foundId;
+    } catch (error) {
+        console.error('Hata:', error);
+    }
+
+}
+async function saveUsertoDatabase(userID, name, uid) {
     const url = dbUrl + userID;
     let userDbID = generateCode();
     //Get Ids
     const response = await axios.get(url);
     data = response.data;
     const ids = Object.values(data)
-        .filter(item => item.id) 
-        .map(item => item.id);   
+        .filter(item => item.id)
+        .map(item => item.id);
 
     console.log(ids);
-    while(ids.includes(userDbID)){
+    while (ids.includes(userDbID)) {
         userDbID = generateCode();
     }
 
 
     console.log(userDbID);
 
-    axios.post(url, {
-         id: userDbID,
-         name: name,
-         recieved: 0,
-         sent: 0,
-         uid: uid,
-     })
-         .then(response => {
-             console.log('Veri başarıyla eklendi:', response.data);
-         })
-         .catch(error => {
-             console.error('Hata oluştu:', error.response?.status, error.message);
-         });
+    await axios.post(url, {
+        id: userDbID,
+        name: name,
+        recieved: 0,
+        sent: 0,
+        uid: uid,
+    })
+        .then(response => {
+            console.log('Veri başarıyla eklendi:', response.data);
+        })
+        .catch(error => {
+            console.error('Hata oluştu:', error.response?.status, error.message);
+        });
 }
-export { saveUsertoDatabase }
+export { saveUsertoDatabase, getUser }
