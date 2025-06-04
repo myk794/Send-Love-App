@@ -32,6 +32,42 @@ async function getUser(userTokenID, uid) {
     }
 
 }
+async function ConnectToUserDB(codeInput, userTokenID, myUid) {
+    const url = dbUrl + userTokenID;
+    try {
+        const response = await axios.get(url);
+        data = response.data;
+        const ids = Object.values(data)
+            .filter(item => item.id)
+            .map(item => item.id);
+
+        console.log(ids);
+        const foundId = ids.find(id => id === codeInput);
+
+        if (foundId) {
+            let targetKey = null;
+            Object.entries(data).forEach(([key, user]) => {
+                if (user.uid === myUid) {
+                    targetKey = key;
+                }
+            });
+            if (!targetKey) {
+                console.log('UID bulunamadı.');
+                return;
+            }  
+            const updateURL = FIREBASE_DATABASE_URL + `/users/${targetKey}.json?auth=${userTokenID}`;
+            const updateField = {connectedID: codeInput};
+            await axios.patch(updateURL,updateField);
+            console.log('connectedID başarıyla güncellendi!');
+            return true;
+        } else {
+            console.log('Eşleşen ID bulunamadı.');
+        }
+
+    } catch (error) {
+        console.error('Hata:', error);
+    }
+}
 async function saveUsertoDatabase(userID, name, uid) {
     const url = dbUrl + userID;
     let userDbID = generateCode();
@@ -64,4 +100,4 @@ async function saveUsertoDatabase(userID, name, uid) {
             console.error('Hata oluştu:', error.response?.status, error.message);
         });
 }
-export { saveUsertoDatabase, getUser }
+export { saveUsertoDatabase, getUser,ConnectToUserDB }

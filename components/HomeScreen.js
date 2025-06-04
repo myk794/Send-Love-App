@@ -1,11 +1,12 @@
 
 import React from 'react'
-import { StyleSheet, Text, View, ImageBackground, Image, Button,ActivityIndicator, TouchableOpacity, Modal, Pressable, TextInput } from 'react-native';
+import { StyleSheet, Text, View, ImageBackground, Image, Button, ActivityIndicator, TouchableOpacity, Modal, Pressable, TextInput } from 'react-native';
 import { auth, signInAnonymously, onAuthStateChanged, database } from '../firebase/firebase';
 import { useEffect, useState } from 'react';
 import Loading from './Loading';
-import { getUser, saveUsertoDatabase } from '../backend/database';
+import { getUser, saveUsertoDatabase, ConnectToUserDB } from '../backend/database';
 import ConnectToUser from './ConnectToUser';
+import Toast, { BaseToast, ErrorToast } from 'react-native-toast-message';
 
 export default function HomeScreen() {
     const [loading, setLoading] = useState(false);
@@ -16,17 +17,23 @@ export default function HomeScreen() {
     const [nameInput, setNameInput] = useState('');
     const [recievedLove, setRecievedLove] = useState('0');
     const [connectUserModal, setConnectUserModal] = useState(false);
+    const [userTokenID, setUserTokenID] = useState('');
+    const [myUid, setMyUid] = useState('');
+
+
+
     useEffect(() => {
         setLoading(false);
         const unsubscribe = onAuthStateChanged(auth, (user) => {
 
-            if (!user) { 
+            if (!user) {
                 setNameInputModal(true);
             } else {
                 // User is already logged in (due to persistence or a fresh sign-in)
                 console.log('Zaten giriş yapmış (Already signed in):', user.uid);
+                setMyUid(user.uid);
                 user.getIdToken().then((idToken) => {
-
+                    setUserTokenID(idToken);
                     getUser(idToken, user.uid).then(id => {
                         setId4(id);
                         console.log(id);
@@ -48,22 +55,54 @@ export default function HomeScreen() {
 
         return unsubscribe;
     }, []);
-
+    const toastConfig = {
+        customError: (props) => (
+            <BaseToast
+                {...props}
+                style={{ borderLeftColor: 'red', backgroundColor: 'black' }} // 👈 Arka plan
+                text1Style={{ color: 'white' }} // Yazı rengi
+                text2Style={{ color: 'white' }}
+                contentContainerStyle={{ paddingHorizontal: 15 }}
+            />
+        ),
+    };
     const pressButton = () => {
-        
+
         if (connected) sendLove();
         else connectLove();
     }
     const sendLove = () => {
-        
+
     }
     const connectLove = () => {
         setConnectUserModal(true);
     }
-    const onConnectLove = () => {
+    async function onConnectLove(codeInput) {
         setConnectUserModal(false);
+        setLoading(true);
+
+        console.log('Girilen kod:', codeInput);
+        await ConnectToUserDB(processCodeInput(codeInput), userTokenID, myUid);
+        setLoading(false);
     }
-    const setNameButton = async() => {
+    const processCodeInput = (codeInput) => {
+
+        let processed = codeInput.startsWith('#') ? codeInput.slice(1) : codeInput;
+
+
+        if (processed.length !== 4) {
+            Toast.show({
+                type: 'customError',
+                text1: 'Invalid Code!',
+                visibilityTime: 2000,
+                position: 'bottom',
+            });
+            return 'none';
+        }
+
+        return processed;
+    };
+    const setNameButton = async () => {
         if (nameInput === '') return;
 
         setNameInputModal(false);
@@ -75,9 +114,12 @@ export default function HomeScreen() {
                 signInAnonymously(auth)
                     .then((userCredential) => {
                         console.log('Anonim giriş başarılı (Anonymous sign-in successful):', userCredential.user.uid);
+                        setMyUid(userCredential.user.uid);
                         userCredential.user.getIdToken().then((idToken) => {
+                            setUserTokenID(idToken);
                             saveUsertoDatabase(idToken, nameInput, userCredential.user.uid).then(() => {
                                 getUser(idToken, userCredential.user.uid).then(id => {
+
                                     setId4(id);
                                     console.log(id);
                                 }).catch(error => {
@@ -100,14 +142,18 @@ export default function HomeScreen() {
     return (
 
         <View style={styles.container}>
-            <ConnectToUser visible={connectUserModal} onSubmit={onConnectLove}/>
-            <Loading visible={loading}/>
+            
+            <ConnectToUser visible={connectUserModal} onSubmit={(codeInput) => {
+
+                onConnectLove(codeInput);
+            }} />
+            <Loading visible={loading} />
             <Modal
                 animationType="fade"
                 transparent={true}
                 visible={nameInputModal}
                 onRequestClose={() => {
-                    
+
                 }}>
                 <View style={styles.centeredView}>
                     <View style={styles.modalView}>
@@ -121,7 +167,7 @@ export default function HomeScreen() {
                             <Text style={styles.textStyle}>Submit</Text>
                         </Pressable>
                     </View>
-                </View> 
+                </View>
             </Modal>
             <Image
                 source={require('../assets/background.png')}
@@ -144,7 +190,7 @@ export default function HomeScreen() {
                 <Text style={styles.sendLoveButtonText}>{connected ? 'SEND' : 'CONNECT'}</Text>
             </TouchableOpacity>
 
-
+            <Toast config={toastConfig}/>
         </View>
 
     );

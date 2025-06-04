@@ -20,7 +20,7 @@ export default function ConnectToUser({ visible,onSubmit }) {
                         placeholder='#0000' />
                     <Pressable
                         style={[styles.button, styles.buttonClose]}
-                        onPress={onSubmit}>
+                        onPress={() => onSubmit(codeInput)}>
                         <Text style={styles.textStyle}>Submit</Text>
                     </Pressable>
                 </View>
