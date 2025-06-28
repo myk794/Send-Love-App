@@ -13,6 +13,22 @@ function generateCode(length = 4) {
     }
     return code;
 }
+async function getUserNameByID4(userTokenID, id4){
+    const url = dbUrl +userTokenID;
+    try {
+        const response = await axios.get(url);
+        let foundName = null;
+        Object.entries(response.data).forEach(([key, user]) => {
+            if (user.id === id4) {
+                foundName = user.name;
+            }
+        });
+        return foundName;
+
+    } catch (error) {
+        console.error('Hata:', error);
+    }
+}
 async function getUser(userTokenID, uid) {
     const url = dbUrl + userTokenID;
     try {
@@ -68,6 +84,9 @@ async function ConnectToUserDB(codeInput, userTokenID, myUid) {
         console.error('Hata:', error);
     }
 }
+async function checkConnected(userTokenID){
+    return false;
+}
 async function saveUsertoDatabase(userID, name, uid) {
     const url = dbUrl + userID;
     let userDbID = generateCode();
@@ -100,4 +119,4 @@ async function saveUsertoDatabase(userID, name, uid) {
             console.error('Hata oluştu:', error.response?.status, error.message);
         });
 }
-export { saveUsertoDatabase, getUser,ConnectToUserDB }
+export { saveUsertoDatabase, getUser,ConnectToUserDB,getUserNameByID4,checkConnected }

@@ -4,7 +4,7 @@ import { StyleSheet, Text, View, ImageBackground, Image, Button, ActivityIndicat
 import { auth, signInAnonymously, onAuthStateChanged, database } from '../firebase/firebase';
 import { useEffect, useState } from 'react';
 import Loading from './Loading';
-import { getUser, saveUsertoDatabase, ConnectToUserDB } from '../backend/database';
+import { getUser, saveUsertoDatabase, ConnectToUserDB,getUserNameByID4 } from '../backend/database';
 import ConnectToUser from './ConnectToUser';
 import Toast, { BaseToast, ErrorToast } from 'react-native-toast-message';
 
@@ -19,13 +19,13 @@ export default function HomeScreen() {
     const [connectUserModal, setConnectUserModal] = useState(false);
     const [userTokenID, setUserTokenID] = useState('');
     const [myUid, setMyUid] = useState('');
-
+    const [yourLoveName, setYourLoveName] = useState('Your Love Name');
 
 
     useEffect(() => {
         setLoading(false);
         const unsubscribe = onAuthStateChanged(auth, (user) => {
-
+            setLoading(true);
             if (!user) {
                 setNameInputModal(true);
             } else {
@@ -50,6 +50,7 @@ export default function HomeScreen() {
 
 
             }
+            setLoading(false);
 
         });
 
@@ -80,9 +81,21 @@ export default function HomeScreen() {
     async function onConnectLove(codeInput) {
         setConnectUserModal(false);
         setLoading(true);
-
+        let newCodeInput = processCodeInput(codeInput);
         console.log('Girilen kod:', codeInput);
-        await ConnectToUserDB(processCodeInput(codeInput), userTokenID, myUid);
+        const connectedCheck = await ConnectToUserDB(newCodeInput, userTokenID, myUid);
+        if (connectedCheck) {
+            Toast.show({
+                type: 'success',
+                text1: 'CONNECTED TO USER!',
+                visibilityTime: 2000,
+                position: 'bottom',
+            });
+            setConnected(true);
+            const connectedUserName = await getUserNameByID4(userTokenID, codeInput);
+            setYourLoveName(connectedUserName);
+        }
+
         setLoading(false);
     }
     const processCodeInput = (codeInput) => {
@@ -142,7 +155,7 @@ export default function HomeScreen() {
     return (
 
         <View style={styles.container}>
-            
+
             <ConnectToUser visible={connectUserModal} onSubmit={(codeInput) => {
 
                 onConnectLove(codeInput);
@@ -182,7 +195,7 @@ export default function HomeScreen() {
                 <View style={styles.userIdContainer}>
                     <Text style={styles.userIdText}>{id4 ? `#${id4}` : '#0000'}</Text>
                 </View>
-                <Text style={styles.yourLoveName}>Your Love Name</Text>
+                <Text style={styles.yourLoveName}>{yourLoveName}</Text>
                 <Text style={styles.incomingLove}>{recievedLove}</Text>
                 <Text style={styles.textSmall}>sent loves today</Text>
             </View>
@@ -190,7 +203,7 @@ export default function HomeScreen() {
                 <Text style={styles.sendLoveButtonText}>{connected ? 'SEND' : 'CONNECT'}</Text>
             </TouchableOpacity>
 
-            <Toast config={toastConfig}/>
+            <Toast config={toastConfig} />
         </View>
 
     );
