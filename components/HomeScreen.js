@@ -29,7 +29,7 @@ export default function HomeScreen() {
             if (!user) {
                 setNameInputModal(true);
             } else {
-                // User is already logged in (due to persistence or a fresh sign-in)
+                
                 console.log('Zaten giriş yapmış (Already signed in):', user.uid);
                 setMyUid(user.uid);
                 user.getIdToken().then((idToken) => {
